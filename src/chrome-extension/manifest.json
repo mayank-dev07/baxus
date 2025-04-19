@@ -9,5 +9,10 @@
   "description": "This is the description of your extension",
   "icons": {
    "16": "public/logo.png"
-  }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": ["activeTab", "scripting"]
   }
