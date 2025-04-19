@@ -7,12 +7,18 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "watch": "chokidar \"src/**/*\" -c \"npm run build\""
   },
   "dependencies": {
     "@types/node": "^22.5.5",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.501.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "tailwind-merge": "^3.2.0",
+    "tailwindcss-animate": "^1.0.7",
     "vite-plugin-static-copy": "^1.0.6"
   },
   "devDependencies": {

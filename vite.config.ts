@@ -10,13 +10,15 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         { src: "src/chrome-extension/manifest.json", dest: "." },
-        { src: "src/chrome-extension/public/16.png", dest: "./public" },
-        { src: "src/chrome-extension/public/32.png", dest: "./public" },
-        { src: "src/chrome-extension/public/48.png", dest: "./public" },
-        { src: "src/chrome-extension/public/192.png", dest: "./public" },
+        { src: "src/chrome-extension/public/logo.png", dest: "./public" },
       ],
     }),
   ],
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, "src"),
+    },
+  },
   server: {
     open: "/popup-local.html",
   },

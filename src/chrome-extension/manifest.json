@@ -8,9 +8,6 @@
   "options_page": "options.html",
   "description": "This is the description of your extension",
   "icons": {
-    "16": "public/16.png",
-    "32": "public/32.png",
-    "48": "public/48.png",
-    "192": "public/192.png"
+   "16": "public/logo.png"
   }
   }
