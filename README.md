@@ -1,4 +1,4 @@
-# Chrome Extension Starter with Vite, React, TypeScript, and Tailwind CSS
+<!-- # Chrome Extension Starter with Vite, React, TypeScript, and Tailwind CSS
 This project is a starter template for building modern Chrome extensions using Vite, React, TypeScript, and Tailwind CSS. It simplifies the setup so you can focus on building your extension's features.
 
 <div style="display: flex; justify-content: space-around">
@@ -91,4 +91,4 @@ npm run dev
 - Open the terminal and run `nmp run build` then visit `chrome://extensions/` and click the refresh `⟳` button on your extension
 
 ## Contributing
-Feel free to fork the project and make improvements or submit bug reports or issues.
+Feel free to fork the project and make improvements or submit bug reports or issues. -->
