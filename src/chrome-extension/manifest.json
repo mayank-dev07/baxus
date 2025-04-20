@@ -1,18 +1,19 @@
 {
-    "manifest_version": 3,
-    "name": "Chrome Extension Starter",
-    "version": "1.0.0",
-    "action" : {
-      "default_popup": "popup.html"
+  "manifest_version": 3,
+  "name": "Chrome Extension Starter",
+  "version": "1.0.0",
+  "action": {
+    "default_popup": "popup.html"
   },
   "options_page": "options.html",
   "description": "This is the description of your extension",
   "icons": {
-   "16": "public/logo.png"
+    "16": "public/logo.png"
   },
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
+  "host_permissions": ["https://services.baxus.co/*"],
   "permissions": ["activeTab", "scripting"]
-  }
+}
