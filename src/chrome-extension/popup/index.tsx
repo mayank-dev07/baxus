@@ -18,21 +18,22 @@ export const Popup = () => {
 
   useEffect(() => {
     console.log("Current URL:", currentUrl);
-  }, [currentUrl]);
+    console.log("Scraped price:", scrapedPrice);
+  }, [currentUrl, scrapedPrice]);
 
-  const extractFirstPrice = (priceText: string): string => {
-    const priceMatches = priceText.match(/(\$|€|£|¥)\s*\d+([.,]\d+)?/g);
-    if (priceMatches && priceMatches.length > 0) {
-      return priceMatches[0];
-    }
+  // const extractFirstPrice = (priceText: string): string => {
+  //   const priceMatches = priceText.match(/(\$|€|£|¥)\s*\d+([.,]\d+)?/g);
+  //   if (priceMatches && priceMatches.length > 0) {
+  //     return priceMatches[0];
+  //   }
 
-    const numberMatches = priceText.match(/\b\d{1,3}(,\d{3})*(\.\d{2})?\b/g);
-    if (numberMatches && numberMatches.length > 0) {
-      return numberMatches[0];
-    }
+  //   const numberMatches = priceText.match(/\b\d{1,3}(,\d{3})*(\.\d{2})?\b/g);
+  //   if (numberMatches && numberMatches.length > 0) {
+  //     return numberMatches[0];
+  //   }
 
-    return priceText;
-  };
+  //   return priceText;
+  // };
 
   const extractNumericPrice = (priceText: string): number | null => {
     const numericValue = priceText.replace(/[^0-9.]/g, "");
@@ -304,7 +305,8 @@ export const Popup = () => {
                         </h3>
                         <div className="p-2 bg-gray-50 rounded-md flex justify-between">
                           <p className="font-medium text-gray-800">
-                            {extractFirstPrice(priceInfo.text)}
+                            {/* {extractFirstPrice(priceInfo.text)} */}
+                            {priceInfo.text}
                           </p>
                         </div>
                       </div>
@@ -349,7 +351,7 @@ export const Popup = () => {
                                 ${product._source.price.toFixed(2)}
                               </p>
                             )}
-                            {scrapedPrice && product._source.price && (
+                            {/* {scrapedPrice && product._source.price && (
                               <span
                                 className={`text-sm ${
                                   scrapedPrice > product._source.price
@@ -373,7 +375,7 @@ export const Popup = () => {
                                     ).toFixed(1)}% lower)`
                                   : "(Same price)"}
                               </span>
-                            )}
+                            )} */}
                           </div>
                         </div>
                       </div>
