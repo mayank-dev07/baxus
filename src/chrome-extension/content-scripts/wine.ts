@@ -32,6 +32,32 @@ function findPriceInformation() {
     const elements = document.querySelectorAll(selector);
     if (elements.length > 0) {
       for (const el of elements) {
+        const mainPriceElement = el.querySelector('.price__detail_main');
+        if (mainPriceElement) {
+          const currencySymbol = mainPriceElement.querySelector('.price__currency-symbol');
+          const integerPart = mainPriceElement.querySelector('.price__integer-part');
+          const fractionalPart = mainPriceElement.querySelector('.price__fractional-part');
+          
+          if (integerPart && integerPart.textContent) {
+            let priceText = '';
+            
+            if (currencySymbol && currencySymbol.textContent) {
+              priceText += currencySymbol.textContent.trim();
+            }
+            
+            priceText += integerPart.textContent.trim();
+            
+            if (fractionalPart && fractionalPart.textContent) {
+              priceText += fractionalPart.textContent.trim();
+            }
+            
+            return {
+              selector: `${selector} .price__detail_main`,
+              text: priceText.replace(/\s+/g, " "),
+            };
+          }
+        }
+        
         if (el.textContent && el.textContent.trim()) {
           return {
             selector: selector,
