@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Chrome Extension Starter",
+  "name": "The Honey Barrel Extension",
   "version": "1.0.0",
   "action": {
     "default_popup": "popup.html"
   },
   "options_page": "options.html",
-  "description": "This is the description of your extension",
+  "description": "The Honey Barrel Extension",
   "icons": {
     "16": "public/logo.png"
   },
