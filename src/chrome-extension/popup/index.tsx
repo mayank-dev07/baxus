@@ -21,20 +21,6 @@ export const Popup = () => {
     console.log("Scraped price:", scrapedPrice);
   }, [currentUrl, scrapedPrice]);
 
-  // const extractFirstPrice = (priceText: string): string => {
-  //   const priceMatches = priceText.match(/(\$|€|£|¥)\s*\d+([.,]\d+)?/g);
-  //   if (priceMatches && priceMatches.length > 0) {
-  //     return priceMatches[0];
-  //   }
-
-  //   const numberMatches = priceText.match(/\b\d{1,3}(,\d{3})*(\.\d{2})?\b/g);
-  //   if (numberMatches && numberMatches.length > 0) {
-  //     return numberMatches[0];
-  //   }
-
-  //   return priceText;
-  // };
-
   const extractNumericPrice = (priceText: string): number | null => {
     const numericValue = priceText.replace(/[^0-9.]/g, "");
     return numericValue ? parseFloat(numericValue) : null;
@@ -150,30 +136,40 @@ export const Popup = () => {
 
     try {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tab = tabs[0];
-        if (tab.url) {
-          setCurrentUrl(tab.url);
+        const activeTab = tabs[0];
+        if (!activeTab || !activeTab.id) {
+          setError("No active tab found");
+          setLoading(false);
+          return;
         }
 
-        chrome.runtime.sendMessage({ action: "scrapeH1" }, (response) => {
-          if (chrome.runtime.lastError) {
-            setError("Error: " + chrome.runtime.lastError.message);
-            setLoading(false);
-            return;
-          }
+        if (activeTab.url) {
+          setCurrentUrl(activeTab.url);
+        }
 
-          if (response && response.success) {
-            setH1Content(response.h1Content[0] || ""); // Take only the first h1 content
-            setPriceInfo(response.priceInfo || null);
-            if (response.priceInfo?.text) {
-              const price = extractNumericPrice(response.priceInfo.text);
-              setScrapedPrice(price);
+        chrome.tabs.sendMessage(
+          activeTab.id,
+          { action: "scrapeH1" },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              setError("Error: " + chrome.runtime.lastError.message);
+              setLoading(false);
+              return;
             }
-          } else {
-            setError(response?.message || "Failed to scrape content");
+
+            if (response && response.success) {
+              setH1Content(response.h1Content[0] || "");
+              setPriceInfo(response.priceInfo || null);
+              if (response.priceInfo?.text) {
+                const price = extractNumericPrice(response.priceInfo.text);
+                setScrapedPrice(price);
+              }
+            } else {
+              setError(response?.message || "Failed to scrape content");
+            }
+            setLoading(false);
           }
-          setLoading(false);
-        });
+        );
       });
     } catch (err) {
       setError("Error: " + (err instanceof Error ? err.message : String(err)));
@@ -181,46 +177,7 @@ export const Popup = () => {
     }
   };
 
-  // Set up a MutationObserver to detect changes in the page content
   useEffect(() => {
-    const setupMutationObserver = () => {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tab = tabs[0];
-        if (!tab.id) return;
-
-        chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: () => {
-            const observer = new MutationObserver((mutations) => {
-              // Check if any mutation affects the content we care about
-              const hasRelevantChange = mutations.some((mutation) => {
-                const target = mutation.target as HTMLElement;
-                return target.matches(
-                  'h1, .price, [itemprop="price"], [data-price]'
-                );
-              });
-
-              if (hasRelevantChange) {
-                chrome.runtime.sendMessage({ action: "contentChanged" });
-              }
-            });
-
-            observer.observe(document.body, {
-              childList: true,
-              subtree: true,
-              characterData: true,
-              attributes: true,
-            });
-
-            return true;
-          },
-        });
-      });
-    };
-
-    setupMutationObserver();
-
-    // Listen for content change messages
     const handleContentChange = (message: any) => {
       if (message.action === "contentChanged") {
         scrapePageData();
@@ -234,7 +191,6 @@ export const Popup = () => {
     };
   }, []);
 
-  // Initial scrape when popup opens
   useEffect(() => {
     scrapePageData();
   }, []);
@@ -265,7 +221,7 @@ export const Popup = () => {
         </div>
 
         <>
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 mb-6 capitalize">
             {h1Content || "Product Information"}
           </h1>
 
@@ -351,31 +307,6 @@ export const Popup = () => {
                                 ${product._source.price.toFixed(2)}
                               </p>
                             )}
-                            {/* {scrapedPrice && product._source.price && (
-                              <span
-                                className={`text-sm ${
-                                  scrapedPrice > product._source.price
-                                    ? "text-green-600"
-                                    : scrapedPrice < product._source.price
-                                    ? "text-red-600"
-                                    : "text-gray-600"
-                                }`}
-                              >
-                                {scrapedPrice > product._source.price
-                                  ? `(${(
-                                      ((scrapedPrice - product._source.price) /
-                                        scrapedPrice) *
-                                      100
-                                    ).toFixed(1)}% higher)`
-                                  : scrapedPrice < product._source.price
-                                  ? `(${(
-                                      ((product._source.price - scrapedPrice) /
-                                        scrapedPrice) *
-                                      100
-                                    ).toFixed(1)}% lower)`
-                                  : "(Same price)"}
-                              </span>
-                            )} */}
                           </div>
                         </div>
                       </div>

@@ -11,7 +11,11 @@
     "16": "public/logo.png"
   },
   "host_permissions": ["https://services.baxus.co/*"],
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "tabs"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "content_scripts": [
     {
       "matches": ["*://*.unicornauctions.com/*"],
