@@ -225,57 +225,75 @@ export const Popup = () => {
             {h1Content || "Product Information"}
           </h1>
 
-          <div className="mb-6">
-            <h2 className="text-xs font-medium text-[#b89d7a] mb-2 uppercase">
-              Product Information
-            </h2>
-            <Card className="shadow-none border border-gray-200">
-              <CardContent className="p-4">
-                {loading ? (
-                  <p className="text-gray-500">Loading content...</p>
-                ) : error ? (
-                  <p className="text-red-500">{error}</p>
-                ) : (
-                  <div className="space-y-4">
-                    {h1Content ? (
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-700 mb-2">
-                          Product Name:
-                        </h3>
-                        <div className="p-2 bg-gray-50 rounded-md">
-                          <p className="font-medium text-gray-800">
-                            {h1Content}
-                          </p>
+          {h1Content && priceInfo ? (
+            <div className="mb-6">
+              <h2 className="text-xs font-medium text-[#b89d7a] mb-2 uppercase">
+                Product Information
+              </h2>
+              <Card className="shadow-none border border-gray-200">
+                <CardContent className="p-4">
+                  {loading ? (
+                    <p className="text-gray-500">Loading content...</p>
+                  ) : error ? (
+                    <p className="text-black">
+                      Reload the page to use the extension
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {h1Content ? (
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-700 mb-2">
+                            Product Name:
+                          </h3>
+                          <div className="p-2 bg-gray-50 rounded-md">
+                            <p className="font-medium text-gray-800">
+                              {h1Content}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <p className="text-gray-500">
-                        No product name found on this page
-                      </p>
-                    )}
+                      ) : (
+                        <p className="text-gray-500">
+                          No product name found on this page
+                        </p>
+                      )}
 
-                    {priceInfo ? (
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-700 mb-2">
-                          Price Information:
-                        </h3>
-                        <div className="p-2 bg-gray-50 rounded-md flex justify-between">
-                          <p className="font-medium text-gray-800">
-                            {/* {extractFirstPrice(priceInfo.text)} */}
-                            {priceInfo.text}
-                          </p>
+                      {priceInfo ? (
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-700 mb-2">
+                            Price Information:
+                          </h3>
+                          <div className="p-2 bg-gray-50 rounded-md flex justify-between">
+                            <p className="font-medium text-gray-800">
+                              {/* {extractFirstPrice(priceInfo.text)} */}
+                              {priceInfo.text}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <p className="text-gray-500">
-                        No price information found on this page
-                      </p>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                      ) : (
+                        <p className="text-gray-500">
+                          No price information found on this page
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="mb-6">
+              <h2 className="text-xs font-medium text-[#b89d7a] mb-2 uppercase">
+                Product Information
+              </h2>
+              <Card className="shadow-none border border-gray-200">
+                <CardContent className="p-4">
+                  <p className="text-black">
+                    No product information found on this page. Open a product
+                    page to use the extension.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {matchingProducts.length > 0 ? (
             <div className="mb-6">
@@ -324,7 +342,7 @@ export const Popup = () => {
                 <Card className="shadow-none border border-gray-200">
                   <CardContent className="p-0">
                     <div className="p-4">
-                      <p className="text-red-500">
+                      <p className="text-black">
                         No matching products found in the marketplace.
                       </p>
                     </div>
