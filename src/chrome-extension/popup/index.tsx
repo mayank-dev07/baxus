@@ -340,8 +340,7 @@ export const Popup = () => {
                     <CardContent className="p-0">
                       <div className="p-4">
                         <p className="text-black">
-                          Fetching data from BAXUS marketplace... No matching
-                          products found in the marketplace.
+                          Fetching data from BAXUS marketplace...
                         </p>
                       </div>
                     </CardContent>
