@@ -15,6 +15,7 @@ export const Popup = () => {
   const [resData, setResData] = useState<any>();
   const [matchingProducts, setMatchingProducts] = useState<any[]>([]);
   const [scrapedPrice, setScrapedPrice] = useState<number | null>(null);
+  const [isloading, setIsLoading] = useState(false);
 
   useEffect(() => {
     console.log("Current URL:", currentUrl);
@@ -33,6 +34,7 @@ export const Popup = () => {
 
   const fetchData = async () => {
     console.log("Fetching data from API...");
+    setIsLoading(true);
 
     try {
       const response = await fetch(
@@ -50,7 +52,6 @@ export const Popup = () => {
 
         const matches = data.filter((product: any) => {
           const productName = product._source.name.toLowerCase().trim();
-          console.log("Product from API:", productName);
 
           const scrapedWords = scrapedName
             .split(/\s+/)
@@ -102,26 +103,20 @@ export const Popup = () => {
             ).toFixed(2)}%`
           );
 
-          const scrapedYears = scrapedWords.filter((word) =>
-            /^\d{4}$/.test(word)
-          );
-          const productYears = productWords.filter((word: any) =>
-            /^\d{4}$/.test(word)
+          const isMatch = matchPercentage >= 0.4;
+          console.log(
+            `Is match for "${productName}": ${isMatch} (${
+              matchPercentage >= 0.4 ? "✓" : "✗"
+            } percentage`
           );
 
-          let yearMatch = true;
-          if (scrapedYears.length > 0 && productYears.length > 0) {
-            yearMatch = scrapedYears.some((year) =>
-              productYears.includes(year)
-            );
-          }
-
-          return matchPercentage >= 0.6 && yearMatch;
+          return isMatch;
         });
 
         console.log("Matching products:", matches);
         setMatchingProducts(matches);
       }
+      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -284,6 +279,7 @@ export const Popup = () => {
               <h2 className="text-xs font-medium text-[#b89d7a] mb-2 uppercase">
                 Product Information
               </h2>
+
               <Card className="shadow-none border border-gray-200">
                 <CardContent className="p-4">
                   <p className="text-black">
@@ -339,15 +335,28 @@ export const Popup = () => {
                 <h2 className="text-xs font-medium text-[#b89d7a] mb-2 uppercase">
                   Price Comparison
                 </h2>
-                <Card className="shadow-none border border-gray-200">
-                  <CardContent className="p-0">
-                    <div className="p-4">
-                      <p className="text-black">
-                        No matching products found in the marketplace.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {isloading ? (
+                  <Card className="shadow-none border border-gray-200">
+                    <CardContent className="p-0">
+                      <div className="p-4">
+                        <p className="text-black">
+                          Fetching data from BAXUS marketplace... No matching
+                          products found in the marketplace.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="shadow-none border border-gray-200">
+                    <CardContent className="p-0">
+                      <div className="p-4">
+                        <p className="text-black">
+                          No matching products found in the marketplace.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </>
           )}
