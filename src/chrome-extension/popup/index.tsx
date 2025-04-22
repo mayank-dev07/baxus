@@ -50,68 +50,167 @@ export const Popup = () => {
         console.log("Scraped name:", scrapedName);
         console.log("API data:", data);
 
-        const matches = data.filter((product: any) => {
-          const productName = product._source.name.toLowerCase().trim();
+        const stopwords = [
+          "the",
+          "and",
+          "a",
+          "an",
+          "of",
+          "with",
+          "in",
+          "on",
+          "by",
+          "for",
+          "to",
+          "at",
+          "from",
+          "as",
+          "is",
+          "are",
+          "was",
+          "were",
+          "&",
+        ];
 
-          const scrapedWords = scrapedName
+        const extractKeyElements = (text: string) => {
+          const words = text
+            .toLowerCase()
             .split(/\s+/)
-            .filter(
+            .filter((word) => word.length > 1 && !stopwords.includes(word));
+
+          const result = {
+            numbers: words.filter((word) => /\d+/.test(word)),
+            descriptors: words.filter((word) =>
+              [
+                "year",
+                "old",
+                "aged",
+                "limited",
+                "cask",
+                "single",
+                "malt",
+                "bottle",
+                "edition",
+                "special",
+                "release",
+                "reserve",
+                "vintage",
+              ].includes(word)
+            ),
+            other: words.filter(
               (word) =>
-                word.length > 1 &&
+                !/\d+/.test(word) &&
                 ![
-                  "the",
-                  "and",
-                  "a",
-                  "an",
-                  "of",
-                  "with",
-                  "in",
-                  "on",
-                  "by",
-                  "for",
+                  "year",
+                  "old",
+                  "aged",
+                  "limited",
+                  "cask",
+                  "single",
+                  "malt",
+                  "bottle",
+                  "edition",
+                  "special",
+                  "release",
+                  "reserve",
+                  "vintage",
                 ].includes(word)
-            );
-          const productWords = productName
-            .split(/\s+/)
-            .filter(
-              (word: any) =>
-                word.length > 1 &&
-                ![
-                  "the",
-                  "and",
-                  "a",
-                  "an",
-                  "of",
-                  "with",
-                  "in",
-                  "on",
-                  "by",
-                  "for",
-                ].includes(word)
-            );
+            ),
+          };
 
-          const matchingWords = scrapedWords.filter((word) =>
-            productWords.includes(word)
-          );
-          const matchPercentage =
-            matchingWords.length /
-            Math.max(scrapedWords.length, productWords.length);
+          return result;
+        };
+
+        const scrapedElements = extractKeyElements(scrapedName);
+
+        const productMatches = data.map((product: any) => {
+          const productName = product._source.name.toLowerCase().trim();
+          const productElements = extractKeyElements(productName);
+
+          const numberMatches = scrapedElements.numbers.filter((num) =>
+            productElements.numbers.includes(num)
+          ).length;
+
+          const descriptorMatches = scrapedElements.descriptors.filter((desc) =>
+            productElements.descriptors.includes(desc)
+          ).length;
+
+          const exactOtherMatches = scrapedElements.other.filter((word) =>
+            productElements.other.includes(word)
+          ).length;
+
+          const partialOtherMatches = scrapedElements.other.filter(
+            (scrapedWord) =>
+              !productElements.other.includes(scrapedWord) &&
+              productElements.other.some(
+                (productWord) =>
+                  productWord.includes(scrapedWord) ||
+                  scrapedWord.includes(productWord)
+              )
+          ).length;
+
+          const numberCompleteness =
+            scrapedElements.numbers.length > 0
+              ? numberMatches / scrapedElements.numbers.length
+              : 1;
+
+          const descriptorCompleteness =
+            scrapedElements.descriptors.length > 0
+              ? descriptorMatches / scrapedElements.descriptors.length
+              : 1;
+
+          const otherWordCompleteness =
+            scrapedElements.other.length > 0
+              ? (exactOtherMatches + partialOtherMatches * 0.5) /
+                scrapedElements.other.length
+              : 1;
+
+          const weightedScore =
+            (numberCompleteness * 3 +
+              descriptorCompleteness * 2 +
+              otherWordCompleteness * 1) /
+            6;
+
+          const totalProductWords =
+            productElements.numbers.length +
+            productElements.descriptors.length +
+            productElements.other.length;
+
+          const totalMatchedWords =
+            numberMatches +
+            descriptorMatches +
+            exactOtherMatches +
+            partialOtherMatches * 0.5;
+
+          const uniquenessScore = totalMatchedWords / totalProductWords;
+
+          const combinedScore = weightedScore * 0.7 + uniquenessScore * 0.3;
 
           console.log(
-            `Match percentage for "${productName}": ${(
-              matchPercentage * 100
-            ).toFixed(2)}%`
+            `Match for "${productName}": ${(combinedScore * 100).toFixed(
+              2
+            )}% ` +
+              `(Numbers: ${numberCompleteness.toFixed(2)}, ` +
+              `Descriptors: ${descriptorCompleteness.toFixed(2)}, ` +
+              `Other: ${otherWordCompleteness.toFixed(2)})`
           );
 
-          const isMatch = matchPercentage >= 0.4;
-          console.log(
-            `Is match for "${productName}": ${isMatch} (${
-              matchPercentage >= 0.4 ? "✓" : "✗"
-            } percentage`
-          );
-
-          return isMatch;
+          return {
+            product,
+            score: combinedScore,
+            details: {
+              numberMatches,
+              descriptorMatches,
+              exactOtherMatches,
+              partialOtherMatches,
+            },
+          };
         });
+
+        const matches = productMatches
+          .filter((item: any) => item.score >= 0.4)
+          .sort((a: any, b: any) => b.score - a.score)
+          .map((item: any) => item.product);
 
         console.log("Matching products:", matches);
         setMatchingProducts(matches);
