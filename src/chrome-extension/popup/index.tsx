@@ -38,7 +38,7 @@ export const Popup = () => {
 
     try {
       const response = await fetch(
-        "https://services.baxus.co/api/search/listings?from=0&size=20&listed=true"
+        "https://services.baxus.co/api/search/listings?from=0&size=200&listed=true"
       );
       console.log("Response from API:", response);
 
