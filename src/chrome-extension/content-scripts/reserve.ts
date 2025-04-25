@@ -16,11 +16,14 @@ function scrapePageData() {
   }
 
   const priceInfo = findPriceInformation();
+  const productDetails = findProductDetails();
 
   return {
     success: true,
     h1Content,
     priceInfo,
+    spiritType: productDetails?.spiritType || null,
+    productDetails,
   };
 }
 
@@ -91,6 +94,34 @@ function findPriceInformation() {
   return null;
 }
 
+function findProductDetails() {
+  const productPropertiesContainer = document.querySelector('div[data-testid="product-properties"][data-sentry-component="ProductProperties"]');
+  
+  if (!productPropertiesContainer) {
+    return { spiritType: null };
+  }
+
+  const propertyRows = productPropertiesContainer.querySelectorAll('div.flex.flex-row.gap-\\[10px\\]');
+  
+  for (const row of propertyRows) {
+    const elements = row.querySelectorAll('p[data-sentry-element="Component"][data-sentry-component="Typography"]');
+    
+    if (elements.length >= 2) {
+      const label = elements[0].textContent?.trim().toLowerCase();
+      const value = elements[1].textContent?.trim();
+      
+      if (label === 'type' && value) {
+        return { spiritType: {
+          selector: 'p[data-sentry-element="Component"][data-sentry-component="Typography"]',
+          text: value
+        } };
+      }
+    }
+  }
+
+  return { spiritType: null };
+}
+
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
   console.log("ReserveBar content script received message:", message);
 
@@ -127,7 +158,7 @@ const observer = new MutationObserver((mutations) => {
   
   const hasRelevantChange = mutations.some((mutation) => {
     const target = mutation.target as HTMLElement;
-    return target.matches('h1, .price, [itemprop="price"], [data-price]');
+    return target.matches('h1, .price, [itemprop="price"], [data-price], [data-sentry-component="Typography"]');
   });
 
   if (hasRelevantChange) {
