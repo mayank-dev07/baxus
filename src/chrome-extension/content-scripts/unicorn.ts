@@ -17,13 +17,6 @@ function scrapePageData() {
   removeDialog();
 
   const h1Elements = document.querySelectorAll("h1");
-  let productName = "";
-
-  if (h1Elements.length >= 3) {
-    productName = h1Elements[2].textContent
-      ? h1Elements[2].textContent.trim()
-      : "";
-  }
 
   const h1Content: string[] = [];
   h1Elements.forEach((element) => {
@@ -48,11 +41,24 @@ function scrapePageData() {
     }
   }
 
+  let spiritType = null;
+  const spiritTypeElements = document.querySelectorAll(".flex.items-center.mb-6");
+  for (const element of spiritTypeElements) {
+    const spiritTypeSpan = element.querySelector("span.inline-block.border.border-black.py-1.px-2.font-black.uppercase.text-\\[0\\.75rem\\].mr-2");
+    if (spiritTypeSpan && spiritTypeSpan.textContent) {
+      spiritType = {
+        selector: ".flex.items-center.mb-6 span.inline-block.border.border-black.uppercase",
+        text: spiritTypeSpan.textContent.trim()
+      };
+      break;
+    }
+  }
+
   return {
     success: true,
-    productName,
     h1Content,
     priceInfo,
+    spiritType,
   };
 }
 
@@ -112,7 +118,17 @@ const observer = new MutationObserver((mutations) => {
       (target instanceof Element &&
         target.tagName === "P" &&
         target.classList.length === 1 &&
-        target.classList.contains("font-black"))
+        target.classList.contains("font-black")) ||
+      (target instanceof Element &&
+        target.classList.contains("flex") &&
+        target.classList.contains("items-center") &&
+        target.classList.contains("mb-6")) ||
+      (target instanceof Element &&
+        target.tagName === "SPAN" &&
+        target.classList.contains("inline-block") &&
+        target.classList.contains("border") &&
+        target.classList.contains("font-black") &&
+        target.classList.contains("uppercase"))
     );
   });
 

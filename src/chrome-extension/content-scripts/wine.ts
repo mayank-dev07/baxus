@@ -15,11 +15,13 @@ function scrapePageData() {
   }
 
   const priceInfo = findPriceInformation();
+  const spiritType = findSpiritType();
 
   return {
     success: true,
     h1Content,
     priceInfo,
+    spiritType,
   };
 }
 
@@ -105,6 +107,23 @@ function findPriceInformation() {
     };
   }
 
+  return null;
+}
+
+function findSpiritType() {
+  const spiritElement = document.querySelector('.prod-profile__grape');
+  
+  if (spiritElement) {
+    const spiritTypeElement = spiritElement.querySelector('.font-light-bold');
+    
+    if (spiritTypeElement && spiritTypeElement.textContent) {
+      return {
+        selector: '.prod-profile__grape .font-light-bold',
+        text: spiritTypeElement.textContent.trim(),
+      };
+    }
+  }
+  
   return null;
 }
 

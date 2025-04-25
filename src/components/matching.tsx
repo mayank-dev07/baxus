@@ -11,19 +11,13 @@ export const matchedPrducts = (
     "of",
     "year",
     "old",
-    "wiskey",
     "single",
-    "malt",
-    "scotch",
-    "straight",
-    "bourbon"
+    "double",
   ];
 
-  // Get original tokens for debugging
   const scrapedTokens = scrapedName.toLowerCase().split(" ");
   const targetTokens = targetName.toLowerCase().split(" ");
 
-  // Clean and tokenize both names, only excluding common words but keeping numbers
   const scrapedWords = scrapedTokens.filter(
     (word) =>
       word.length > 2 && !commonWords.includes(word)
@@ -38,26 +32,31 @@ export const matchedPrducts = (
     return false;
   }
 
-  // Count matching words
-  const matchingWords = scrapedWords.filter((word) =>
-    targetWords.some(
+  let totalWeight = 0;
+  let matchWeight = 0;
+
+  scrapedWords.forEach((word, index) => {
+    const positionWeight = 1 - (index / scrapedWords.length) * 0.5; 
+    totalWeight += positionWeight;
+    
+    if (targetWords.some(
       (targetWord) => targetWord.includes(word) || word.includes(targetWord)
-    )
-  );
+    )) {
+      matchWeight += positionWeight;
+    }
+  });
 
-  // Calculate match percentage including numeric words
-  const matchPercentage = (matchingWords.length / scrapedWords.length) * 100;
+  const matchPercentage = (matchWeight / totalWeight) * 100;
 
-  // Debugging output
   if (matchPercentage >= 20) {
     console.log(`Scraped Name: ${scrapedName}`);
     console.log(`Target Name: ${targetName}`);
     console.log(`Filtered Scraped Words: ${scrapedWords.join(", ")}`);
     console.log(`Filtered Target Words: ${targetWords.join(", ")}`);
-    console.log(`Matching Words: ${matchingWords.join(", ")}`);
-    console.log(`Match Percentage: ${matchPercentage.toFixed(2)}%`);
+    console.log(`Match Weight: ${matchWeight.toFixed(2)}`);
+    console.log(`Total Weight: ${totalWeight.toFixed(2)}`);
+    console.log(`Weighted Match Percentage: ${matchPercentage.toFixed(2)}%`);
   }
 
-  // Return true if match percentage is over 40%
   return matchPercentage >= 40;
 };

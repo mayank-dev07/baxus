@@ -1,7 +1,7 @@
-import {  matchedPrducts } from "../../components/matching";
+import { matchedPrducts } from "../../components/matching";
 import { Card, CardContent } from "../../components/ui/card";
 import "../global.css";
-import { ChevronRight } from "lucide-react";
+import { Banknote, ChevronRight, Droplet, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Popup = () => {
@@ -10,6 +10,7 @@ export const Popup = () => {
     selector: string;
     text: string;
   } | null>(null);
+  const [spiritType, setSpiritType] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUrl, setCurrentUrl] = useState<string>("");
@@ -32,29 +33,29 @@ export const Popup = () => {
     console.log("ResData updated:", resData);
   }, [resData, matchingProducts]);
 
-
-
   const findMatchingProducts = (scrapedName: string, apiData: any[]): any[] => {
     if (!scrapedName || !apiData || apiData.length === 0) {
       return [];
     }
-    
+
     const cleanedScrapedName = scrapedName.toLowerCase().trim();
     console.log("Searching for matches for:", cleanedScrapedName);
-    
-    const matches = apiData.filter(product => {
-      const productName = product._source?.attributes?.Name || 
-                         product._source?.name || 
-                         "";
-      
+
+    const matches = apiData.filter((product) => {
+      const productName =
+        product._source?.attributes?.Name || product._source?.name || "";
+
       if (!productName) return false;
-      
+
       return matchedPrducts(cleanedScrapedName, productName.toLowerCase());
     });
-    
-    console.log("Matches found:", matches.map(p => p._source?.name || p._source?.attributes?.Name));
-    
-    return matches
+
+    console.log(
+      "Matches found:",
+      matches.map((p) => p._source?.name || p._source?.attributes?.Name)
+    );
+
+    return matches;
   };
 
   const fetchData = async () => {
@@ -72,7 +73,6 @@ export const Popup = () => {
       setResData(data);
 
       if (h1Content && scrapedPrice) {
-
         const matches = findMatchingProducts(h1Content, data);
 
         console.log("Products:", matches);
@@ -124,12 +124,15 @@ export const Popup = () => {
             }
 
             if (response && response.success) {
+              console.log("response", response);
+
               setH1Content(response.h1Content[0] || "");
               setPriceInfo(response.priceInfo || null);
               if (response.priceInfo?.text) {
                 const price = extractNumericPrice(response.priceInfo.text);
                 setScrapedPrice(price);
               }
+              setSpiritType(response.spiritType?.text || null);
             } else {
               setError(response?.message || "Failed to scrape content");
             }
@@ -187,9 +190,6 @@ export const Popup = () => {
         </div>
 
         <>
-          <h1 className="text-2xl font-bold text-gray-800 mb-6 capitalize">
-            {h1Content || "Product Information"}
-          </h1>
 
           {h1Content && scrapedPrice ? (
             <div className="mb-6">
@@ -212,9 +212,12 @@ export const Popup = () => {
                             Product Name:
                           </h3>
                           <div className="p-2 bg-gray-50 rounded-md">
-                            <p className="font-medium text-gray-800">
-                              {h1Content}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-[16px] w-[16px] text-[#b89d7a]" />
+                              <p className="font-medium text-gray-800">
+                                {h1Content}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       ) : (
@@ -222,16 +225,34 @@ export const Popup = () => {
                           No product name found on this page
                         </p>
                       )}
+                      {spiritType && (
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-700 mb-2">
+                            Spirit Type:
+                          </h3>
+                          <div className="p-2 bg-gray-50 rounded-md">
+                            <div className="flex items-center gap-2">
+                              <Droplet className="h-[16px] w-[16px] text-[#b89d7a]" />
+                              <p className="font-medium text-gray-800">
+                                {spiritType}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {priceInfo ? (
                         <div>
                           <h3 className="text-sm font-medium text-gray-700 mb-2">
                             Price Information:
                           </h3>
-                          <div className="p-2 bg-gray-50 rounded-md flex justify-between">
-                            <p className="font-medium text-gray-800">
-                              {priceInfo.text}
-                            </p>
+                          <div className="p-2 bg-gray-50 rounded-md">
+                            <div className="flex items-center gap-2">
+                              <Banknote className="h-[16px] w-[16px] text-[#b89d7a]" />
+                              <p className="font-medium text-gray-800">
+                                {priceInfo.text}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       ) : (
@@ -269,8 +290,10 @@ export const Popup = () => {
               <Card className="shadow-none border border-gray-200">
                 <CardContent className="p-0">
                   {matchingProducts.map((product, index) => (
-                    <div
+                    <a
                       key={index}
+                      href={`https://www.baxus.co/asset/${product._source.id}`}
+                      target="_blank"
                       className="p-4 border-b border-gray-200 last:border-b-0"
                     >
                       <div className="flex items-center gap-4">
@@ -294,7 +317,7 @@ export const Popup = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </ a>
                   ))}
                 </CardContent>
               </Card>
