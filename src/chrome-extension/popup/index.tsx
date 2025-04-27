@@ -1,7 +1,7 @@
 import { matchedPrducts } from "../../components/matching";
 import { Card, CardContent } from "../../components/ui/card";
 import "../global.css";
-import { Banknote, ChevronRight, Droplet, FileText } from "lucide-react";
+import { ChevronRight, Coins, Droplet, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Popup = () => {
@@ -248,7 +248,7 @@ export const Popup = () => {
                           </h3>
                           <div className="p-2 bg-gray-50 rounded-md">
                             <div className="flex items-center gap-2">
-                              <Banknote className="h-[16px] w-[16px] text-[#b89d7a]" />
+                              <Coins className="h-[16px] w-[16px] text-[#b89d7a]" />
                               <p className="font-medium text-gray-800">
                                 {priceInfo.text}
                               </p>
