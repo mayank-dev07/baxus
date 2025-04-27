@@ -10,10 +10,32 @@
   "icons": {
     "16": "public/logo.png"
   },
+  "host_permissions": ["https://services.baxus.co/*"],
+  "permissions": ["activeTab", "scripting", "tabs"],
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
-  "host_permissions": ["https://services.baxus.co/*"],
-  "permissions": ["activeTab", "scripting"]
+  "content_scripts": [
+    {
+      "matches": ["*://*.unicornauctions.com/*"],
+      "js": ["content-scripts/unicorn.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://*.reservebar.com/*"],
+      "js": ["content-scripts/reserve.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://*.sothebys.com/*"],
+      "js": ["content-scripts/sothebys.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://*.wine-searcher.com/*"],
+      "js": ["content-scripts/wine.js"],
+      "run_at": "document_idle"
+    }
+  ]
 }

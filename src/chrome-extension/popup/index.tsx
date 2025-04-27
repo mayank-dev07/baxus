@@ -1,6 +1,7 @@
+import { matchedPrducts } from "../../components/matching";
 import { Card, CardContent } from "../../components/ui/card";
 import "../global.css";
-import { ChevronRight } from "lucide-react";
+import { Banknote, ChevronRight, Droplet, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Popup = () => {
@@ -9,31 +10,19 @@ export const Popup = () => {
     selector: string;
     text: string;
   } | null>(null);
+  const [spiritType, setSpiritType] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUrl, setCurrentUrl] = useState<string>("");
   const [resData, setResData] = useState<any>();
   const [matchingProducts, setMatchingProducts] = useState<any[]>([]);
   const [scrapedPrice, setScrapedPrice] = useState<number | null>(null);
+  const [isloading, setIsLoading] = useState(false);
 
   useEffect(() => {
     console.log("Current URL:", currentUrl);
     console.log("Scraped price:", scrapedPrice);
   }, [currentUrl, scrapedPrice]);
-
-  // const extractFirstPrice = (priceText: string): string => {
-  //   const priceMatches = priceText.match(/(\$|€|£|¥)\s*\d+([.,]\d+)?/g);
-  //   if (priceMatches && priceMatches.length > 0) {
-  //     return priceMatches[0];
-  //   }
-
-  //   const numberMatches = priceText.match(/\b\d{1,3}(,\d{3})*(\.\d{2})?\b/g);
-  //   if (numberMatches && numberMatches.length > 0) {
-  //     return numberMatches[0];
-  //   }
-
-  //   return priceText;
-  // };
 
   const extractNumericPrice = (priceText: string): number | null => {
     const numericValue = priceText.replace(/[^0-9.]/g, "");
@@ -42,98 +31,51 @@ export const Popup = () => {
 
   useEffect(() => {
     console.log("ResData updated:", resData);
-    console.log("Matching products:", matchingProducts);
   }, [resData, matchingProducts]);
+
+  const findMatchingProducts = (scrapedName: string, apiData: any[]): any[] => {
+    if (!scrapedName || !apiData || apiData.length === 0) {
+      return [];
+    }
+
+    const cleanedScrapedName = scrapedName.toLowerCase().trim();
+    console.log("Searching for matches for:", cleanedScrapedName);
+
+    const matches = apiData.filter((product) => {
+      const productName =
+        product._source?.attributes?.Name || product._source?.name || "";
+
+      if (!productName) return false;
+
+      return matchedPrducts(cleanedScrapedName, productName.toLowerCase());
+    });
+
+    console.log(
+      "Matches found:",
+      matches.map((p) => p._source?.name || p._source?.attributes?.Name)
+    );
+
+    return matches;
+  };
 
   const fetchData = async () => {
     console.log("Fetching data from API...");
+    setIsLoading(true);
+    setMatchingProducts([]);
 
     try {
       const response = await fetch(
-        "https://services.baxus.co/api/search/listings?from=0&size=20&listed=true"
+        "https://services.baxus.co/api/search/listings?from=0&size=200&listed=true"
       );
       console.log("Response from API:", response);
 
       const data = await response.json();
       setResData(data);
 
-      if (h1Content) {
-        const scrapedName = h1Content.toLowerCase().trim();
-        console.log("Scraped name:", scrapedName);
-        console.log("API data:", data);
+      if (h1Content && scrapedPrice) {
+        const matches = findMatchingProducts(h1Content, data);
 
-        const matches = data.filter((product: any) => {
-          const productName = product._source.name.toLowerCase().trim();
-          console.log("Product from API:", productName);
-
-          const scrapedWords = scrapedName
-            .split(/\s+/)
-            .filter(
-              (word) =>
-                word.length > 1 &&
-                ![
-                  "the",
-                  "and",
-                  "a",
-                  "an",
-                  "of",
-                  "with",
-                  "in",
-                  "on",
-                  "by",
-                  "for",
-                ].includes(word)
-            );
-          const productWords = productName
-            .split(/\s+/)
-            .filter(
-              (word: any) =>
-                word.length > 1 &&
-                ![
-                  "the",
-                  "and",
-                  "a",
-                  "an",
-                  "of",
-                  "with",
-                  "in",
-                  "on",
-                  "by",
-                  "for",
-                ].includes(word)
-            );
-
-          const matchingWords = scrapedWords.filter((word) =>
-            productWords.includes(word)
-          );
-          const matchPercentage =
-            matchingWords.length /
-            Math.max(scrapedWords.length, productWords.length);
-
-          console.log(
-            `Match percentage for "${productName}": ${(
-              matchPercentage * 100
-            ).toFixed(2)}%`
-          );
-
-          const scrapedYears = scrapedWords.filter((word) =>
-            /^\d{4}$/.test(word)
-          );
-          const productYears = productWords.filter((word: any) =>
-            /^\d{4}$/.test(word)
-          );
-
-          let yearMatch = true;
-          if (scrapedYears.length > 0 && productYears.length > 0) {
-            yearMatch = scrapedYears.some((year) =>
-              productYears.includes(year)
-            );
-          }
-
-          return matchPercentage >= 0.6 && yearMatch;
-        });
-
-        console.log("Matching products:", matches);
+        console.log("Products:", matches);
         setMatchingProducts(matches);
       }
     } catch (error) {
@@ -144,36 +86,59 @@ export const Popup = () => {
   useEffect(() => {
     fetchData();
   }, [h1Content]);
+
+  useEffect(() => {
+    if (matchingProducts.length > 0) setIsLoading(false);
+    setTimeout(() => {
+      if (matchingProducts.length < 1) {
+        setIsLoading(false);
+      }
+    }, 10000);
+  }, [matchingProducts]);
+
   const scrapePageData = () => {
     setLoading(true);
     setError(null);
 
     try {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tab = tabs[0];
-        if (tab.url) {
-          setCurrentUrl(tab.url);
+        const activeTab = tabs[0];
+        if (!activeTab || !activeTab.id) {
+          setError("No active tab found");
+          setLoading(false);
+          return;
         }
 
-        chrome.runtime.sendMessage({ action: "scrapeH1" }, (response) => {
-          if (chrome.runtime.lastError) {
-            setError("Error: " + chrome.runtime.lastError.message);
-            setLoading(false);
-            return;
-          }
+        if (activeTab.url) {
+          setCurrentUrl(activeTab.url);
+        }
 
-          if (response && response.success) {
-            setH1Content(response.h1Content[0] || ""); // Take only the first h1 content
-            setPriceInfo(response.priceInfo || null);
-            if (response.priceInfo?.text) {
-              const price = extractNumericPrice(response.priceInfo.text);
-              setScrapedPrice(price);
+        chrome.tabs.sendMessage(
+          activeTab.id,
+          { action: "scrapeH1" },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              setError("Error: " + chrome.runtime.lastError.message);
+              setLoading(false);
+              return;
             }
-          } else {
-            setError(response?.message || "Failed to scrape content");
+
+            if (response && response.success) {
+              console.log("response", response);
+
+              setH1Content(response.h1Content[0] || "");
+              setPriceInfo(response.priceInfo || null);
+              if (response.priceInfo?.text) {
+                const price = extractNumericPrice(response.priceInfo.text);
+                setScrapedPrice(price);
+              }
+              setSpiritType(response.spiritType?.text || null);
+            } else {
+              setError(response?.message || "Failed to scrape content");
+            }
+            setLoading(false);
           }
-          setLoading(false);
-        });
+        );
       });
     } catch (err) {
       setError("Error: " + (err instanceof Error ? err.message : String(err)));
@@ -181,46 +146,7 @@ export const Popup = () => {
     }
   };
 
-  // Set up a MutationObserver to detect changes in the page content
   useEffect(() => {
-    const setupMutationObserver = () => {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tab = tabs[0];
-        if (!tab.id) return;
-
-        chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: () => {
-            const observer = new MutationObserver((mutations) => {
-              // Check if any mutation affects the content we care about
-              const hasRelevantChange = mutations.some((mutation) => {
-                const target = mutation.target as HTMLElement;
-                return target.matches(
-                  'h1, .price, [itemprop="price"], [data-price]'
-                );
-              });
-
-              if (hasRelevantChange) {
-                chrome.runtime.sendMessage({ action: "contentChanged" });
-              }
-            });
-
-            observer.observe(document.body, {
-              childList: true,
-              subtree: true,
-              characterData: true,
-              attributes: true,
-            });
-
-            return true;
-          },
-        });
-      });
-    };
-
-    setupMutationObserver();
-
-    // Listen for content change messages
     const handleContentChange = (message: any) => {
       if (message.action === "contentChanged") {
         scrapePageData();
@@ -234,7 +160,6 @@ export const Popup = () => {
     };
   }, []);
 
-  // Initial scrape when popup opens
   useEffect(() => {
     scrapePageData();
   }, []);
@@ -265,61 +190,97 @@ export const Popup = () => {
         </div>
 
         <>
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">
-            {h1Content || "Product Information"}
-          </h1>
 
-          <div className="mb-6">
-            <h2 className="text-xs font-medium text-[#b89d7a] mb-2 uppercase">
-              Product Information
-            </h2>
-            <Card className="shadow-none border border-gray-200">
-              <CardContent className="p-4">
-                {loading ? (
-                  <p className="text-gray-500">Loading content...</p>
-                ) : error ? (
-                  <p className="text-red-500">{error}</p>
-                ) : (
-                  <div className="space-y-4">
-                    {h1Content ? (
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-700 mb-2">
-                          Product Name:
-                        </h3>
-                        <div className="p-2 bg-gray-50 rounded-md">
-                          <p className="font-medium text-gray-800">
-                            {h1Content}
-                          </p>
+          {h1Content && scrapedPrice ? (
+            <div className="mb-6">
+              <h2 className="text-xs font-medium text-[#b89d7a] mb-2 uppercase">
+                Product Information
+              </h2>
+              <Card className="shadow-none border border-gray-200">
+                <CardContent className="p-4">
+                  {loading ? (
+                    <p className="text-gray-500">Loading content...</p>
+                  ) : error ? (
+                    <p className="text-black">
+                      Reload the page to use the extension
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {h1Content ? (
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-700 mb-2">
+                            Product Name:
+                          </h3>
+                          <div className="p-2 bg-gray-50 rounded-md">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-[16px] w-[16px] text-[#b89d7a]" />
+                              <p className="font-medium text-gray-800">
+                                {h1Content}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <p className="text-gray-500">
-                        No product name found on this page
-                      </p>
-                    )}
+                      ) : (
+                        <p className="text-gray-500">
+                          No product name found on this page
+                        </p>
+                      )}
+                      {spiritType && (
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-700 mb-2">
+                            Spirit Type:
+                          </h3>
+                          <div className="p-2 bg-gray-50 rounded-md">
+                            <div className="flex items-center gap-2">
+                              <Droplet className="h-[16px] w-[16px] text-[#b89d7a]" />
+                              <p className="font-medium text-gray-800">
+                                {spiritType}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
-                    {priceInfo ? (
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-700 mb-2">
-                          Price Information:
-                        </h3>
-                        <div className="p-2 bg-gray-50 rounded-md flex justify-between">
-                          <p className="font-medium text-gray-800">
-                            {/* {extractFirstPrice(priceInfo.text)} */}
-                            {priceInfo.text}
-                          </p>
+                      {priceInfo ? (
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-700 mb-2">
+                            Price Information:
+                          </h3>
+                          <div className="p-2 bg-gray-50 rounded-md">
+                            <div className="flex items-center gap-2">
+                              <Banknote className="h-[16px] w-[16px] text-[#b89d7a]" />
+                              <p className="font-medium text-gray-800">
+                                {priceInfo.text}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <p className="text-gray-500">
-                        No price information found on this page
-                      </p>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                      ) : (
+                        <p className="text-gray-500">
+                          No price information found on this page
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="mb-6">
+              <h2 className="text-xs font-medium text-[#b89d7a] mb-2 uppercase">
+                Product Information
+              </h2>
+
+              <Card className="shadow-none border border-gray-200">
+                <CardContent className="p-4">
+                  <p className="text-black">
+                    No product information found on this page. Open a product
+                    page to use the extension.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {matchingProducts.length > 0 ? (
             <div className="mb-6">
@@ -329,14 +290,16 @@ export const Popup = () => {
               <Card className="shadow-none border border-gray-200">
                 <CardContent className="p-0">
                   {matchingProducts.map((product, index) => (
-                    <div
+                    <a
                       key={index}
+                      href={`https://www.baxus.co/asset/${product._source.id}`}
+                      target="_blank"
                       className="p-4 border-b border-gray-200 last:border-b-0"
                     >
                       <div className="flex items-center gap-4">
-                        {product._source?.images?.[0] && (
+                        {product._source?.imageUrl && (
                           <img
-                            src={product._source.images[0]}
+                            src={product._source.imageUrl}
                             alt={product._source.name}
                             className="w-16 h-16 object-cover rounded"
                           />
@@ -351,35 +314,10 @@ export const Popup = () => {
                                 ${product._source.price.toFixed(2)}
                               </p>
                             )}
-                            {/* {scrapedPrice && product._source.price && (
-                              <span
-                                className={`text-sm ${
-                                  scrapedPrice > product._source.price
-                                    ? "text-green-600"
-                                    : scrapedPrice < product._source.price
-                                    ? "text-red-600"
-                                    : "text-gray-600"
-                                }`}
-                              >
-                                {scrapedPrice > product._source.price
-                                  ? `(${(
-                                      ((scrapedPrice - product._source.price) /
-                                        scrapedPrice) *
-                                      100
-                                    ).toFixed(1)}% higher)`
-                                  : scrapedPrice < product._source.price
-                                  ? `(${(
-                                      ((product._source.price - scrapedPrice) /
-                                        scrapedPrice) *
-                                      100
-                                    ).toFixed(1)}% lower)`
-                                  : "(Same price)"}
-                              </span>
-                            )} */}
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </ a>
                   ))}
                 </CardContent>
               </Card>
@@ -390,15 +328,37 @@ export const Popup = () => {
                 <h2 className="text-xs font-medium text-[#b89d7a] mb-2 uppercase">
                   Price Comparison
                 </h2>
-                <Card className="shadow-none border border-gray-200">
-                  <CardContent className="p-0">
-                    <div className="p-4">
-                      <p className="text-red-500">
-                        No matching products found in the marketplace.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {isloading && h1Content && scrapedPrice ? (
+                  <Card className="shadow-none border border-gray-200">
+                    <CardContent className="p-0">
+                      <div className="p-4">
+                        <p className="text-black">
+                          Fetching data from BAXUS marketplace...
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : h1Content && scrapedPrice && matchingProducts.length < 1 ? (
+                  <Card className="shadow-none border border-gray-200">
+                    <CardContent className="p-0">
+                      <div className="p-4">
+                        <p className="text-black">No products found.</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  matchingProducts.length < 1 && (
+                    <Card className="shadow-none border border-gray-200">
+                      <CardContent className="p-0">
+                        <div className="p-4">
+                          <p className="text-black">
+                            Search for a product to see price comparisons.
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                )}
               </div>
             </>
           )}
