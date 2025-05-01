@@ -3,7 +3,7 @@
 <!-- Consider converting demo.mov to a GIF for better GitHub compatibility -->
 <!-- ![Demo](src/public/demo.gif) -->
 
-[View Demo Video](src/public/demo.mov)
+<!-- [View Demo Video](src/public/demo.mov) -->
 
 ## Description
 
