@@ -2,7 +2,10 @@
 
 A modern, React-based Chrome extension starter kit with TypeScript and TailwindCSS support.
 
-![Demo](src/public/demo.mov)
+<!-- Consider converting demo.mov to a GIF for better GitHub compatibility -->
+<!-- ![Demo](src/public/demo.gif) -->
+
+[View Demo Video](src/public/demo.mov)
 
 ## Description
 
