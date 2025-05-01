@@ -1,4 +1,4 @@
-# TheHoney Barrel
+# The Honey Barrel
 
 <!-- Consider converting demo.mov to a GIF for better GitHub compatibility -->
 <!-- ![Demo](src/public/demo.gif) -->
