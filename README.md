@@ -1,6 +1,4 @@
-# Chrome Extension Starter
-
-A modern, React-based Chrome extension starter kit with TypeScript and TailwindCSS support.
+# TheHoney Barrel
 
 <!-- Consider converting demo.mov to a GIF for better GitHub compatibility -->
 <!-- ![Demo](src/public/demo.gif) -->
@@ -9,7 +7,7 @@ A modern, React-based Chrome extension starter kit with TypeScript and TailwindC
 
 ## Description
 
-This project provides a robust foundation for building Chrome extensions using modern web technologies. It comes pre-configured with React, TypeScript, and TailwindCSS, allowing developers to quickly start building feature-rich browser extensions without worrying about the boilerplate setup.
+A Chrome extension that scrapes whisky/wine bottle information from e-commerce and retail websites, then cross-references with the BAXUS marketplace to determine if the same bottles are available at better prices.
 
 ## Installation
 
