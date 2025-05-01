@@ -99,5 +99,3 @@ This project uses ESLint to enforce code style. Before submitting a pull request
 ```bash
 npm run lint
 ``` -->
-
-x
