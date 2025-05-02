@@ -1,9 +1,7 @@
 # The Honey Barrel
 
-<!-- Consider converting demo.mov to a GIF for better GitHub compatibility -->
-<!-- ![Demo](src/public/demo.gif) -->
-
-<!-- [View Demo Video](src/public/demo.mov) -->
+[![Demo Video](https://img.youtube.com/vi/IeYtkG17xk0/0.jpg)](https://youtu.be/IeYtkG17xk0)
+[Watch the Demo Video](https://youtu.be/IeYtkG17xk0)
 
 ## Description
 
@@ -36,16 +34,6 @@ A Chrome extension that scrapes whisky/wine bottle information from e-commerce a
    - Click "Load unpacked" and select the `dist` directory from this project
 
 ## Usage Guide
-
-### Development
-
-Start the development server with hot reloading:
-
-```bash
-npm run watch
-```
-
-This will automatically rebuild the extension whenever you make changes to the source code.
 
 ### Building for Production
 
